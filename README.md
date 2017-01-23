@@ -12,7 +12,7 @@ HM-CFG-USB in [Fhem][] or as a lan configuration tool for the [CCU][] or the
 HomeMatic windows configuration software, also supporting devices using
 AES-signing like [KeyMatic][].
 
-[HM-CFG-USB(2)]: http://www.eq-3.de/produkte/homematic/zentralen-und-gateways/homematic-funk-konfigurationsadapter-usb.html
+[HM-CFG-USB(2)]: http://www.eq-3.de/Downloads/eq3/downloads_produktkatalog/homematic/bda/HM-CFG-USB-2_-UM-eQ-3-150129-web.pdf
 [ELV]: http://www.elv.de/
 [libusb 1.0]: http://www.libusb.org/
 [BidCoS-Packets]: http://homegear.eu/index.php/BidCoS%C2%AE_Packets
@@ -87,7 +87,7 @@ you should upgrade to at least version 0.101.
 [hmusbif.03c7.enc]: https://git.zerfleddert.de/hmcfgusb/firmware/hmusbif.03c7.enc
 [Firmware update tool]: http://www.eq-3.de/Downloads/Software/Firmware%20Update%20Tool/HM-CFG-USB-2_FW-UpdateTool-Usersoftware_V1_1_eQ-3_140619.zip
 
-### Updating HomemMatic devices over the air (OTA) (also for CUL devices): ###
+### Updating HomemMatic devices over the air (OTA) (also for CUL- and HM-MOD-UART-devices): ###
 
 1.  Compile the hmcfgusb utilities like in the hmland HowTo above
     (steps 1 to 5) and stay in the directory
@@ -98,9 +98,13 @@ you should upgrade to at least version 0.101.
 *   When using the **[HM-CFG-USB(2)][]**, flash the new firmware to the device
     with serial *KEQ0123456*:  
      `./flash-ota -f hm_cc_rt_dn_update_V1_4_001_141020.eq3 -s KEQ0123456`
-*   When using a **[culfw][]**-based device (**[CUL][]/[COC][]/...**), flash
-    the new firmware to the device with serial *KEQ0123456*:  
+*   When using a **[culfw][]**-, **[a-culfw][]**- or **[tsculfw][]**-based
+    device (**[CUL][]/[COC][]/...**), flash the new firmware to the device
+    with serial *KEQ0123456*:  
      `./flash-ota -f hm_cc_rt_dn_update_V1_4_001_141020.eq3 -s KEQ0123456 -c /dev/ttyACM0`
+*   When using the **[HM-MOD-UART][]**, flash the new firmware to the device
+    with serial *KEQ0123456*:  
+     `./flash-ota -f hm_cc_rt_dn_update_V1_4_001_141020.eq3 -s KEQ0123456 -U /dev/ttyAMA0`
 
 **Automatic firmware-updates:**  
 The options `-C` (HMID of central), `-D` (HMID of device) and `-K` (AES key w/
@@ -117,6 +121,9 @@ signing-requests with culfw-devices.
 
 [eQ-3]: http://www.eq-3.de/downloads.html
 [culfw]: http://culfw.de/culfw.html
+[a-culfw]: https://forum.fhem.de/index.php?topic=35064.0
+[tsculfw]: https://forum.fhem.de/index.php?topic=24436.0
 [CUL]: http://busware.de/tiki-index.php?page=CUL
 [COC]: http://busware.de/tiki-index.php?page=COC
+[HM-MOD-UART]: https://www.elv.de/homematic-funkmodul-fuer-raspberry-pi-bausatz.html
 [AES implementation by Brad Conte]: https://github.com/B-Con/crypto-algorithms

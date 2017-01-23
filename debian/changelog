@@ -1,3 +1,12 @@
+hmcfgusb (0.103-1) unstable; urgency=low
+
+  * flash-ota: add support for HM-HMOD-UART and TSCUL
+  * hmsniff: add support for HM-MOD-UART
+  * flash-hmmoduart: firmware updating on HM-MOD-UART
+  * flash-ota: various bug-fixes
+
+ -- Michael Gernoth <michael@gernoth.net>  Mon, 23 Jan 2016 10:19:08 +0200
+
 hmcfgusb (0.102-1) unstable; urgency=low
 
   * hmland: decrease poll-timeout to 250ms to improve performance
