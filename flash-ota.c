@@ -1,6 +1,7 @@
 /* flasher for HomeMatic-devices supporting OTA updates
  *
- * Copyright (c) 2014-16 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2014-17 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2017 noansi (TSCULFW-support)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -61,6 +62,7 @@ uint32_t max_payloadlen = NORMAL_MAX_PAYLOAD;
 enum message_type {
 	MESSAGE_TYPE_E = 1,
 	MESSAGE_TYPE_R = 2,
+	MESSAGE_TYPE_B = 3,
 };
 
 enum hmuartlgw_state {
@@ -81,6 +83,7 @@ struct recv_data {
 	uint8_t credits;
 	enum hmuartlgw_state uartlgw_state;
 	uint8_t uartlgw_version[3];
+	uint8_t is_TSCUL; // tsculfw
 };
 
 static int parse_hmcfgusb(uint8_t *buf, int buf_len, void *data)
@@ -129,8 +132,10 @@ static int parse_culfw(uint8_t *buf, int buf_len, void *data)
 {
 	struct recv_data *rdata = data;
 	int pos = 0;
+	int rpos = 0; // read index
 
-	memset(rdata, 0, sizeof(struct recv_data));
+	memset(rdata->message, 0, sizeof(rdata->message));
+	rdata->message_type = 0;
 
 	if (buf_len <= 3)
 		return 0;
@@ -140,12 +145,60 @@ static int parse_culfw(uint8_t *buf, int buf_len, void *data)
 			if (buf[1] == 's')
 				return 0;
 
-			while(validate_nibble(buf[(pos * 2) + 1]) &&
-			      validate_nibble(buf[(pos * 2) + 2]) &&
-			      (pos + 1 < buf_len)) {
-				rdata->message[pos] = ascii_to_nibble(buf[(pos * 2) + 1]) << 4;
-				rdata->message[pos] |= ascii_to_nibble(buf[(pos * 2) + 2]);
+			if ((buf[1] == 'p') || (buf[1] == 't')) // tsculfw: ping or set timestamp command echoed?
+				return 0;
+
+			if (buf[1] == '?') {// tsculfw: unknown command
+				fprintf(stderr, "unknown ASKSIN command sent\n");
+				return 0;
+			}
+
+			if (buf[1] == 'F') { // tsculfw: timestamp message?
+				rdata->is_TSCUL = 1;
+				if (buf_len <= (3+14)) // tsculfw: reasonable len?
+					return 0;
+				if (!validate_nibble(buf[3]) || !validate_nibble(buf[4])) // tsculfw: hex?
+					return 0;
+
+				rdata->credits = ascii_to_nibble(buf[3]); // tsculfw: coarse credits info, 0 = full credits (1800 x10ms) available
+
+				//AFF1B000053A1010F0520CB1122334BD57110
+				switch(ascii_to_nibble(buf[4]) & 0x7) { // tsculfw: message type?
+					case 0: // tsculfw: send fail message repeat fail or AES Auth error
+						fprintf(stderr, "send didn't complete, repeat fail or AES Auth error\n");
+						return 0;
+					case 1: // tsculfw: received message
+						rpos += 7; // tsculfw: ignore timestamp data for now
+						break;
+					case 2: // tsculfw: ping answer
+						return 0;
+					case 3: // tsculfw: send success
+						rdata->message_type = MESSAGE_TYPE_B;
+						return 0;
+					case 4: // tsculfw: send fail channel busy message
+						fprintf(stderr, "CCA didn't complete, too much traffic\n");
+						return 0;
+					case 5: // tsculfw: send fail credits message
+						fprintf(stderr, "send didn't complete, not enough credits left\n");
+						return 0;
+					case 6: // tsculfw: send timestamp fail message no buffer or send message length error
+						fprintf(stderr, "send didn't complete, not enough credits left -> wait 30 minutes with TSCUL powered and not reset\n");
+						return 0;
+					case 7: // tsculfw: send fail due to cc1101 TX-FIFO underflow error message
+						fprintf(stderr, "send didn't complete, cc1101 TX-FIFO underflow\n");
+						return 0;
+					default:
+						break;
+				}
+			}
+
+			while(validate_nibble(buf[(rpos * 2) + 1]) &&
+			      validate_nibble(buf[(rpos * 2) + 2]) &&
+			      (rpos + 1 < buf_len)) {
+				rdata->message[pos] = ascii_to_nibble(buf[(rpos * 2) + 1]) << 4;
+				rdata->message[pos] |= ascii_to_nibble(buf[(rpos * 2) + 2]);
 				pos++;
+				rpos++;
 			}
 
 			if (hmid && (SRC(rdata->message) != hmid))
@@ -158,6 +211,12 @@ static int parse_culfw(uint8_t *buf, int buf_len, void *data)
 				uint8_t v;
 				char *s;
 				char *e;
+
+				if (!strncmp((char*)buf, "VTS", 3)) { // tsculfw: "VTS x.xx NNNNNN"
+					rdata->is_TSCUL = 1;
+					rdata->version = 0xffff;
+					break;
+				}
 
 				s = ((char*)buf) + 2;
 				e = strchr(s, '.');
@@ -315,7 +374,8 @@ int send_hm_message(struct hm_dev *dev, struct recv_data *rdata, uint8_t *msg)
 
 			memcpy(&out[0x0f], msg, msg[0] + 1);
 
-			memset(rdata, 0, sizeof(struct recv_data));
+			memset(rdata->message, 0, sizeof(rdata->message));
+			rdata->message_type = 0;
 			hmcfgusb_send(dev->hmcfgusb, out, sizeof(out), 1);
 
 			while (1) {
@@ -361,10 +421,25 @@ int send_hm_message(struct hm_dev *dev, struct recv_data *rdata, uint8_t *msg)
 				buf[2 + (i * 2) ] = '\r';
 				buf[2 + (i * 2) + 1] = '\n';
 
-				memset(rdata, 0, sizeof(struct recv_data));
+				memset(rdata->message, 0, sizeof(rdata->message));
+				rdata->message_type = 0;
 				if (culfw_send(dev->culfw, buf, 2 + (i * 2) + 1) == 0) {
 					fprintf(stderr, "culfw_send failed!\n");
 					exit(EXIT_FAILURE);
+				}
+
+				/* Wait for TSCUL to ACK send */
+				if (rdata->is_TSCUL) {
+					do {
+						errno = 0;
+						pfd = culfw_poll(dev->culfw, 200);
+						if ((pfd < 0) && errno) {
+							if (errno != ETIMEDOUT) {
+								perror("\n\nculfw_poll");
+								exit(EXIT_FAILURE);
+							}
+						}
+					} while (rdata->message_type != MESSAGE_TYPE_B);
 				}
 
 				if (msg[CTL] & 0x20) {
@@ -386,6 +461,11 @@ int send_hm_message(struct hm_dev *dev, struct recv_data *rdata, uint8_t *msg)
 									uint8_t challenge[6];
 									uint8_t respbuf[16];
 									uint8_t *resp;
+
+									if (rdata->is_TSCUL) {
+										printf("AES handled by TSCUL\n");
+										break;
+									}
 
 									req_kNo = rdata->message[rdata->message[LEN]] / 2;
 									memcpy(challenge, &(rdata->message[PAYLOAD+1]), 6);
@@ -430,6 +510,11 @@ int send_hm_message(struct hm_dev *dev, struct recv_data *rdata, uint8_t *msg)
 						return 0;
 					}
 				}
+
+				/* Delay for non-TSCUL */
+				if (!rdata->is_TSCUL) {
+					usleep(50*1000);
+				}
 			}
 			break;
 		case DEVICE_TYPE_HMUARTLGW:
@@ -441,7 +526,8 @@ int send_hm_message(struct hm_dev *dev, struct recv_data *rdata, uint8_t *msg)
 			out[3] = (msg[CTL] & 0x10) ? 0x01 : 0x00; /* Burst?! */
 			memcpy(&out[4], &msg[1], msg[0]);
 
-			memset(rdata, 0, sizeof(struct recv_data));
+			memset(rdata->message, 0, sizeof(rdata->message));
+			rdata->message_type = 0;
 			hmuartlgw_send(dev->hmuartlgw, out, msg[0] + 4, HMUARTLGW_APP);
 
 			while (1) {
@@ -693,7 +779,49 @@ int main(int argc, char **argv)
 				(rdata.version >> 8) & 0xff,
 				rdata.version & 0xff);
 		} else {
-			printf("a-culfw\n");
+			if (rdata.is_TSCUL) {
+				culfw_send(dev.culfw, "At1\r\n", 5); // tsculfw: try switch on timestamp protocol
+				printf("tsculfw\n");
+				culfw_flush(dev.culfw);
+				culfw_send(dev.culfw, "ApTiMeStAmP\r\n", 13); // tsculfw: send ping to get credits info
+				pfd = culfw_poll(dev.culfw, 1000);
+				if ((pfd < 0) && errno) {
+					if (errno != ETIMEDOUT) {
+						perror("\n\nhmcfgusb_poll");
+						exit(EXIT_FAILURE);
+					}
+				}
+				if (rdata.credits) { // tsculfw: maximum credits available?
+					fprintf(stderr, "\n\ntsculfw does not report full credits, try again later\n");
+					exit(EXIT_FAILURE);
+				}
+
+				if (kNo > 0) {
+					char keybuf[64] = { 0 };
+					int i;
+
+					printf("Setting AES-key\n");
+					snprintf(keybuf, sizeof(keybuf) - 1, "Ak%02x", kNo - 1);
+
+					for (i = 0; i < 16; i++) {
+						keybuf[4 + (i * 2)] = nibble_to_ascii((key[i] >> 4) & 0xf);
+						keybuf[4 + (i * 2) + 1] = nibble_to_ascii(key[i] & 0xf);
+					}
+					keybuf[4 + (i * 2) ] = '\r';
+					keybuf[4 + (i * 2) + 1] = '\n';
+					culfw_send(dev.culfw, keybuf, strlen(keybuf)); // tsculfw: send ping to get credits info
+					pfd = culfw_poll(dev.culfw, 1000);
+					if ((pfd < 0) && errno) {
+						if (errno != ETIMEDOUT) {
+							perror("\n\nhmcfgusb_poll");
+							exit(EXIT_FAILURE);
+						}
+					}
+				}
+			}
+			else {
+				printf("a-culfw\n");
+			}
 		}
 
 		if (rdata.version < 0x013a) {
@@ -1105,7 +1233,8 @@ int main(int argc, char **argv)
 			if (((pos + payloadlen) - &(fw->fw[block][2])) == len)
 				ack = 1;
 
-			memset(&rdata, 0, sizeof(rdata));
+			memset(rdata.message, 0, sizeof(rdata.message));
+			rdata.message_type = 0;
 
 			memset(out, 0, sizeof(out));
 
