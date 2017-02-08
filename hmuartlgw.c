@@ -1,6 +1,6 @@
 /* HM-MOD-UART/HM-LGW-O-TW-W-EU driver
  *
- * Copyright (c) 2016 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2016-17 Michael Gernoth <michael@gernoth.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -51,10 +51,12 @@ enum hmuartlgw_state {
 	HMUARTLGW_ENTER_APPLICATION,
 	HMUARTLGW_ENTER_APPLICATION_ACK,
 	HMUARTLGW_APPLICATION,
+	HMUARTLGW_DUAL_APPLICATION,
 };
 
 struct recv_data {
 	enum hmuartlgw_state state;
+	struct hmuartlgw_dev *dev;
 };
 
 
@@ -90,6 +92,69 @@ static int hmuartlgw_init_parse(enum hmuartlgw_dst dst, uint8_t *buf, int buf_le
 		hexdump(buf, buf_len, "INIT > ");
 	}
 #endif
+
+	/* Minimally handle DualCopro-Firmware */
+	if (dst == HMUARTLGW_DUAL) {
+		if ((buf_len == 14) && (buf[0] == 0x00) && !strncmp(((char*)buf)+1, "DualCoPro_App", 13)) {
+			rdata->state = HMUARTLGW_DUAL_APPLICATION;
+			return 1;
+		}
+
+		switch (rdata->state) {
+			case HMUARTLGW_QUERY_APPSTATE:
+				if ((buf[0] == 0x05) && (buf[1] == 0x01)) {
+					if (!strncmp(((char*)buf)+2, "DualCoPro_App", 13)) {
+						rdata->state = HMUARTLGW_DUAL_APPLICATION;
+						return 1;
+					}
+				}
+				break;
+			case HMUARTLGW_ENTER_BOOTLOADER:
+				if ((buf_len == 2) &&
+				    (buf[0] == 0x05) &&
+				    (buf[1] == 0x01)) {
+					rdata->state = HMUARTLGW_ENTER_BOOTLOADER_ACK;
+					return 1;
+				}
+				break;
+			default:
+				fprintf(stderr, "Don't know how to handle this state (%d) for unsupported firmware, giving up!\n", rdata->state);
+				exit(1);
+				break;
+		}
+
+		return 0;
+	}
+
+	/* Re-send commands for DualCopro Firmware */
+	if (dst == HMUARTLGW_DUAL_ERR) {
+		uint8_t buf[128] = { 0 };
+
+		switch(rdata->state) {
+			case HMUARTLGW_QUERY_APPSTATE:
+				if (debug) {
+					printf("Re-sending appstate-query for new firmare\n");
+				}
+
+				buf[0] = HMUARTLGW_DUAL_GET_APP;
+				hmuartlgw_send(rdata->dev, buf, 1, HMUARTLGW_DUAL);
+				break;
+			case HMUARTLGW_ENTER_BOOTLOADER:
+				if (debug) {
+					printf("Re-sending switch to bootloader for new firmare\n");
+				}
+
+				buf[0] = HMUARTLGW_DUAL_CHANGE_APP;
+				hmuartlgw_send(rdata->dev, buf, 1, HMUARTLGW_DUAL);
+				break;
+			default:
+				fprintf(stderr, "Don't know how to handle this error-state (%d) for unsupported firmware, giving up!\n", rdata->state);
+				exit(1);
+				break;
+		}
+
+		return 0;
+	}
 
 	if (dst != HMUARTLGW_OS)
 		return 0;
@@ -227,11 +292,10 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 		fprintf(stderr, "Entering bootloader\n");
 	}
 
-	buf[0] = HMUARTLGW_OS_CHANGE_APP;
-
 	dev->cb = hmuartlgw_init_parse;
 	dev->cb_data = &rdata;
 
+	rdata.dev = dev;
 	rdata.state = HMUARTLGW_QUERY_APPSTATE;
 	buf[0] = HMUARTLGW_OS_GET_APP;
 	hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
@@ -240,6 +304,7 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 	} while (rdata.state == HMUARTLGW_QUERY_APPSTATE);
 
 	if (rdata.state != HMUARTLGW_BOOTLOADER) {
+		rdata.dev = dev;
 		rdata.state = HMUARTLGW_ENTER_BOOTLOADER;
 		buf[0] = HMUARTLGW_OS_CHANGE_APP;
 		hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
@@ -269,6 +334,7 @@ void hmuartlgw_enter_app(struct hmuartlgw_dev *dev)
 	dev->cb = hmuartlgw_init_parse;
 	dev->cb_data = &rdata;
 
+	rdata.dev = dev;
 	rdata.state = HMUARTLGW_QUERY_APPSTATE;
 	buf[0] = HMUARTLGW_OS_GET_APP;
 	hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
@@ -276,17 +342,28 @@ void hmuartlgw_enter_app(struct hmuartlgw_dev *dev)
 		hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
 	} while (rdata.state == HMUARTLGW_QUERY_APPSTATE);
 
-	if (rdata.state != HMUARTLGW_APPLICATION) {
+	if ((rdata.state != HMUARTLGW_APPLICATION) &&
+	    (rdata.state != HMUARTLGW_DUAL_APPLICATION)) {
+		rdata.dev = dev;
 		rdata.state = HMUARTLGW_ENTER_APPLICATION;
 		buf[0] = HMUARTLGW_OS_CHANGE_APP;
 		hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
 		do {
 			hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
-		} while (rdata.state != HMUARTLGW_APPLICATION);
+		} while ((rdata.state != HMUARTLGW_APPLICATION) &&
+		         (rdata.state != HMUARTLGW_DUAL_APPLICATION));
 
-		printf("Waiting for application to settle...\n");
-		sleep(HMUARTLGW_SETTLE_TIME);
+		if (rdata.state == HMUARTLGW_APPLICATION) {
+			printf("Waiting for application to settle...\n");
+			sleep(HMUARTLGW_SETTLE_TIME);
+		}
 	}
+
+	if (rdata.state == HMUARTLGW_DUAL_APPLICATION) {
+		fprintf(stderr, "Unsupported firmware, please install HM-only firmware!\n");
+		exit(1);
+	}
+
 
 	dev->cb = cb_old;
 	dev->cb_data = cb_data_old;

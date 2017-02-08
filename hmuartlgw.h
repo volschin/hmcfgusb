@@ -1,6 +1,6 @@
 /* HM-MOD-UART/HM-LGW-O-TW-W-EU driver
  *
- * Copyright (c) 2016 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2016-17 Michael Gernoth <michael@gernoth.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -47,11 +47,16 @@
 #define HMUARTLGW_APP_SET_OLD_KEY	0x0F	/* key index */
 #define HMUARTLGW_APP_DEFAULT_HMID	0x10
 
+#define HMUARTLGW_DUAL_GET_APP		0x01
+#define HMUARTLGW_DUAL_CHANGE_APP	0x02
+
 #define HMUARTLGW_ACK_EINPROGRESS	0x08
 
 enum hmuartlgw_dst {
 	HMUARTLGW_OS = 0,
 	HMUARTLGW_APP = 1,
+	HMUARTLGW_DUAL = 0xfe,
+	HMUARTLGW_DUAL_ERR = 0xff,
 };
 
 typedef int (*hmuartlgw_cb_fn)(enum hmuartlgw_dst dst, uint8_t *buf, int buf_len, void *data);
