@@ -22,6 +22,10 @@ DAEMON_ARGS="-d -P"             # Arguments to run the daemon with
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
+if [ ! -x $DAEMON ]; then
+	DAEMON=/opt/hmcfgusb/$NAME #location from Fhem wiki...
+fi
+
 # Exit if the package is not installed
 [ -x $DAEMON ] || exit 0
 
