@@ -32,7 +32,7 @@ AES-signing like [KeyMatic][].
         2.  Extract the archive: `tar xzf hmcfgusb-0.100.tar.gz`
         3.  Change into the new directory: `cd hmcfgusb-0.100`
     *   Get the current *development*-version via git (can be easily updated with `git pull`):
-        1.  `git clone git://git.zerfleddert.de/hmcfgusb`
+        1.  `git clone https://git.zerfleddert.de/git/hmcfgusb`
         2.  Change into the new directory: `cd hmcfgusb`
     *   Get the current *development*-version as an archive:
         1.  [hmcfgusb-HEAD-xxxxxxx.tar.gz][] (xxxxxxx is part of the commit-id.
