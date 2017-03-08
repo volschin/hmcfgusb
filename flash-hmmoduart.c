@@ -1,6 +1,6 @@
 /* flasher for HM-MOD-UART
  *
- * Copyright (c) 2016 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2016-17 Michael Gernoth <michael@gernoth.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -125,13 +125,15 @@ int main(int argc, char **argv)
 
 	memset(&rdata, 0, sizeof(rdata));
 
+	printf("\nInitializing HM-MOD-UART...\n");
+
 	dev = hmuart_init(uart, parse_hmuartlgw, &rdata, 0);
 	if (!dev) {
 		fprintf(stderr, "Can't initialize HM-MOD-UART\n");
 		exit(EXIT_FAILURE);
 	}
 
-	printf("\nHM-MOD-UART opened.\n\n");
+	printf("HM-MOD-UART opened.\n\n");
 
 	printf("Flashing %d blocks", fw->fw_blocks);
 	if (debug) {

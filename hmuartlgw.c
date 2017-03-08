@@ -287,6 +287,7 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 	void *cb_data_old = dev->cb_data;
 	struct recv_data rdata = { 0 };
 	uint8_t buf[128] = { 0 };
+	int ret;
 
 	if (debug) {
 		fprintf(stderr, "Entering bootloader\n");
@@ -300,7 +301,12 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 	buf[0] = HMUARTLGW_OS_GET_APP;
 	hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
 	do {
-		hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+		errno = 0;
+		ret = hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+		if (ret == -1 && errno == ETIMEDOUT) {
+			fprintf(stderr, "Communication with the module timed out, is the serial port configured correctly?\n");
+			exit(1);
+		}
 	} while (rdata.state == HMUARTLGW_QUERY_APPSTATE);
 
 	if (rdata.state != HMUARTLGW_BOOTLOADER) {
@@ -309,7 +315,12 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 		buf[0] = HMUARTLGW_OS_CHANGE_APP;
 		hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
 		do {
-			hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+			errno = 0;
+			ret = hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+			if (ret == -1 && errno == ETIMEDOUT) {
+				fprintf(stderr, "Communication with the module timed out, is the serial port configured correctly?\n");
+				exit(1);
+			}
 		} while (rdata.state != HMUARTLGW_BOOTLOADER);
 
 		printf("Waiting for bootloader to settle...\n");
@@ -326,6 +337,7 @@ void hmuartlgw_enter_app(struct hmuartlgw_dev *dev)
 	void *cb_data_old = dev->cb_data;
 	struct recv_data rdata = { 0 };
 	uint8_t buf[128] = { 0 };
+	int ret;
 
 	if (debug) {
 		fprintf(stderr, "Entering application\n");
@@ -339,7 +351,12 @@ void hmuartlgw_enter_app(struct hmuartlgw_dev *dev)
 	buf[0] = HMUARTLGW_OS_GET_APP;
 	hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
 	do {
-		hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+		errno = 0;
+		ret = hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+		if (ret == -1 && errno == ETIMEDOUT) {
+			fprintf(stderr, "Communication with the module timed out, is the serial port configured correctly?\n");
+			exit(1);
+		}
 	} while (rdata.state == HMUARTLGW_QUERY_APPSTATE);
 
 	if ((rdata.state != HMUARTLGW_APPLICATION) &&
@@ -349,7 +366,12 @@ void hmuartlgw_enter_app(struct hmuartlgw_dev *dev)
 		buf[0] = HMUARTLGW_OS_CHANGE_APP;
 		hmuartlgw_send(dev, buf, 1, HMUARTLGW_OS);
 		do {
-			hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+			errno = 0;
+			ret = hmuartlgw_poll(dev, HMUARTLGW_INIT_TIMEOUT);
+			if (ret == -1 && errno == ETIMEDOUT) {
+				fprintf(stderr, "Communication with the module timed out, is the serial port configured correctly?\n");
+				exit(1);
+			}
 		} while ((rdata.state != HMUARTLGW_APPLICATION) &&
 		         (rdata.state != HMUARTLGW_DUAL_APPLICATION));
 
