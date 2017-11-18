@@ -48,10 +48,12 @@ enum hmuartlgw_state {
 	HMUARTLGW_ENTER_BOOTLOADER,
 	HMUARTLGW_ENTER_BOOTLOADER_ACK,
 	HMUARTLGW_BOOTLOADER,
+	HMUARTLGW_IP_BOOTLOADER,
 	HMUARTLGW_ENTER_APPLICATION,
 	HMUARTLGW_ENTER_APPLICATION_ACK,
 	HMUARTLGW_APPLICATION,
 	HMUARTLGW_DUAL_APPLICATION,
+	HMUARTLGW_HMIP_APPLICATION,
 };
 
 struct recv_data {
@@ -105,6 +107,12 @@ static int hmuartlgw_init_parse(enum hmuartlgw_dst dst, uint8_t *buf, int buf_le
 				if ((buf[0] == 0x05) && (buf[1] == 0x01)) {
 					if (!strncmp(((char*)buf)+2, "DualCoPro_App", 13)) {
 						rdata->state = HMUARTLGW_DUAL_APPLICATION;
+						return 1;
+					} else if (!strncmp(((char*)buf)+2, "HMIP_TRX_App", 12)) {
+						rdata->state = HMUARTLGW_HMIP_APPLICATION;
+						return 1;
+					} else if (!strncmp(((char*)buf)+2, "HMIP_TRX_Bl", 11)) {
+						rdata->state = HMUARTLGW_IP_BOOTLOADER;
 						return 1;
 					}
 				}
@@ -202,6 +210,12 @@ static int hmuartlgw_init_parse(enum hmuartlgw_dst dst, uint8_t *buf, int buf_le
 		default:
 			return 0;
 			break;
+	}
+
+	/* Try to query current app in case we might be in the DUAL/HMIP-Bootloader */
+	if ((buf[0] == HMUARTLGW_OS_ACK) && (buf[1] == 0x03)) {
+		buf[0] = HMUARTLGW_DUAL_GET_APP;
+		hmuartlgw_send(rdata->dev, buf, 1, HMUARTLGW_DUAL);
 	}
 
         return 1;
@@ -309,7 +323,8 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 		}
 	} while (rdata.state == HMUARTLGW_QUERY_APPSTATE);
 
-	if (rdata.state != HMUARTLGW_BOOTLOADER) {
+	if ((rdata.state != HMUARTLGW_BOOTLOADER) &&
+	    (rdata.state != HMUARTLGW_IP_BOOTLOADER)) {
 		rdata.dev = dev;
 		rdata.state = HMUARTLGW_ENTER_BOOTLOADER;
 		buf[0] = HMUARTLGW_OS_CHANGE_APP;
@@ -321,7 +336,8 @@ void hmuartlgw_enter_bootloader(struct hmuartlgw_dev *dev)
 				fprintf(stderr, "Communication with the module timed out, is the serial port configured correctly?\n");
 				exit(1);
 			}
-		} while (rdata.state != HMUARTLGW_BOOTLOADER);
+		} while ((rdata.state != HMUARTLGW_BOOTLOADER) &&
+		         (rdata.state != HMUARTLGW_IP_BOOTLOADER));
 
 		printf("Waiting for bootloader to settle...\n");
 		sleep(HMUARTLGW_SETTLE_TIME);
