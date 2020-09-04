@@ -99,6 +99,28 @@ static char * usb_strerror(int e)
 	return unknerr;
 }
 
+static char * usb_str_transfer_status(int e)
+{
+	static char unknerr[256];
+
+	switch (e) {
+		case LIBUSB_TRANSFER_COMPLETED:
+			return "Transfer completed";
+		case LIBUSB_TRANSFER_ERROR:
+			return "Transfer error";
+		case LIBUSB_TRANSFER_TIMED_OUT:
+			return "Transfer timed out";
+		case LIBUSB_TRANSFER_CANCELLED:
+			return "Transfer cancelled";
+		case LIBUSB_TRANSFER_STALL:
+			return "No device";
+		case LIBUSB_TRANSFER_OVERFLOW:
+			return "Transfer overflow";
+	};
+	snprintf(unknerr, sizeof(unknerr), "Unknown transfer status %d / 0x%02x", e, e);
+	return unknerr;
+}
+
 static libusb_device_handle *hmcfgusb_find(int vid, int pid, char *serial) {
 	libusb_device_handle *devh = NULL;
 	libusb_device **list;
@@ -279,7 +301,7 @@ static void LIBUSB_CALL hmcfgusb_interrupt(struct libusb_transfer *transfer)
 	if (transfer->status != LIBUSB_TRANSFER_COMPLETED) {
 		if (transfer->status != LIBUSB_TRANSFER_TIMED_OUT) {
 			if (transfer->status != LIBUSB_TRANSFER_CANCELLED)
-				fprintf(stderr, "Interrupt transfer not completed: %s!\n", usb_strerror(transfer->status));
+				fprintf(stderr, "Interrupt transfer not completed: %s!\n", usb_str_transfer_status(transfer->status));
 
 			quit = EIO;
 			goto out;
