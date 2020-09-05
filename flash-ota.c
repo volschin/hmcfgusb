@@ -201,7 +201,7 @@ static int parse_culfw(uint8_t *buf, int buf_len, void *data)
 				rpos++;
 			}
 
-			if (hmid && (SRC(rdata->message) != hmid))
+			if (hmid && (SRC(rdata->message) != (int)hmid))
 				return 0;
 
 			rdata->message_type = MESSAGE_TYPE_E;
@@ -1094,7 +1094,7 @@ int main(int argc, char **argv)
 			if (serial && !strncmp((char*)&(rdata.message[0x0b]), serial, 10)) {
 				hmid = SRC(rdata.message);
 				break;
-			} else if (!serial && SRC(rdata.message) == hmid) {
+			} else if (!serial && SRC(rdata.message) == (int)hmid) {
 				serial = (char*)&(rdata.message[0x0b]);
 				break;
 			}
