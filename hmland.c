@@ -142,12 +142,12 @@ static void write_log(const char *buf, int len, const char *fmt, ...)
 		fflush(logfile);
 }
 
-static int format_part_out(uint8_t **inpos, int inlen, uint8_t **outpos, int outlen, int len, int flags)
+static int format_part_out(uint8_t **inpos, int inlen, uint8_t **outpos, int outlen, size_t len, int flags)
 {
 	uint8_t *buf_out = *outpos;
 	uint8_t *outend = *outpos + outlen;
 	uint8_t *inend = *inpos + inlen;
-	int i;
+	size_t i;
 
 	if (flags & FLAG_COMMA_BEFORE) {
 		CHECK_SPACE(1);
@@ -202,7 +202,7 @@ static int parse_part_in(uint8_t **inpos, int inlen, uint8_t **outpos, int outle
 	uint8_t *inend = *inpos + inlen;
 
 	if (flags & FLAG_LENGTH_BYTE) {
-		int len = 0;
+		size_t len = 0;
 		uint8_t *ip;
 
 		ip = *inpos;
