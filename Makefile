@@ -21,7 +21,10 @@ CFLAGS+= -MMD -O2 -I/opt/local/include -g
 
 LDFLAGS:=-L/opt/local/lib
 LDLIBS:=-lusb-1.0 -lrt
+
+ifeq ($(firstword $(origin CC)),default)
 CC:=gcc
+endif
 
 HMLAN_OBJS:=hmcfgusb.o hmland.o util.o
 HMSNIFF_OBJS:=hmcfgusb.o hmuartlgw.o hmsniff.o
