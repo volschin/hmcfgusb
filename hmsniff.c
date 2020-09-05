@@ -42,7 +42,7 @@
 static int verbose = 0;
 
 /* See HMConfig.pm */
-char *hm_message_types(uint8_t type, uint8_t subtype)
+const char *hm_message_types(uint8_t type, uint8_t subtype)
 {
 	switch(type) {
 		case 0x00:

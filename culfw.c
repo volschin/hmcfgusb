@@ -110,7 +110,7 @@ out:
 	return NULL;
 }
 
-int culfw_send(struct culfw_dev *dev, char *cmd, int cmdlen)
+int culfw_send(struct culfw_dev *dev, const char *cmd, int cmdlen)
 {
 	int w = 0;
 	int ret;

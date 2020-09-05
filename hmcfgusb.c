@@ -61,7 +61,7 @@ static int debug = 0;
 static int libusb_initialized = 0;
 
 /* Not in all libusb-1.0 versions, so we have to roll our own :-( */
-static char * usb_strerror(int e)
+static const char* usb_strerror(int e)
 {
 	static char unknerr[256];
 
@@ -99,7 +99,7 @@ static char * usb_strerror(int e)
 	return unknerr;
 }
 
-static char * usb_str_transfer_status(int e)
+static const char* usb_str_transfer_status(int e)
 {
 	static char unknerr[256];
 

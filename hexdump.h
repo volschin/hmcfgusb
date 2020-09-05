@@ -21,7 +21,7 @@
  * IN THE SOFTWARE.
  */
 
-static void asciishow(unsigned char *buf, int len)
+static void asciishow(const unsigned char *buf, int len)
 {
 	int i;
 
@@ -35,7 +35,7 @@ static void asciishow(unsigned char *buf, int len)
 	}
 }
 
-static void hexdump(unsigned char *buf, int len, char *prefix)
+static void hexdump(const unsigned char *buf, int len, const char *prefix)
 {
 	int i, j;
 

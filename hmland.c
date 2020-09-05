@@ -100,7 +100,7 @@ static void print_timestamp(FILE *f)
 	fprintf(f, "%s.%06ld: ", ts, tv.tv_usec);
 }
 
-static void write_log(char *buf, int len, char *fmt, ...)
+static void write_log(const char *buf, int len, const char *fmt, ...)
 {
 	va_list ap;
 	int i;
