@@ -19,21 +19,21 @@ CFLAGS+= -Wbad-function-cast
 CFLAGS+= -Wold-style-definition
 CFLAGS+= -MMD -O2 -I/opt/local/include -g
 
-LDFLAGS=-L/opt/local/lib
-LDLIBS=-lusb-1.0 -lrt
-CC=gcc
+LDFLAGS:=-L/opt/local/lib
+LDLIBS:=-lusb-1.0 -lrt
+CC:=gcc
 
-HMLAN_OBJS=hmcfgusb.o hmland.o util.o
-HMSNIFF_OBJS=hmcfgusb.o hmuartlgw.o hmsniff.o
-FLASH_HMCFGUSB_OBJS=hmcfgusb.o firmware.o util.o flash-hmcfgusb.o
-FLASH_HMMODUART_OBJS=hmuartlgw.o firmware.o util.o flash-hmmoduart.o
-FLASH_OTA_OBJS=hmcfgusb.o culfw.o hmuartlgw.o firmware.o util.o flash-ota.o hm.o aes.o
+HMLAN_OBJS:=hmcfgusb.o hmland.o util.o
+HMSNIFF_OBJS:=hmcfgusb.o hmuartlgw.o hmsniff.o
+FLASH_HMCFGUSB_OBJS:=hmcfgusb.o firmware.o util.o flash-hmcfgusb.o
+FLASH_HMMODUART_OBJS:=hmuartlgw.o firmware.o util.o flash-hmmoduart.o
+FLASH_OTA_OBJS:=hmcfgusb.o culfw.o hmuartlgw.o firmware.o util.o flash-ota.o hm.o aes.o
 
-OBJS=$(HMLAN_OBJS) $(HMSNIFF_OBJS) $(FLASH_HMCFGUSB_OBJS) $(FLASH_HMMODUART_OBJS) $(FLASH_OTA_OBJS)
+OBJS:=$(HMLAN_OBJS) $(HMSNIFF_OBJS) $(FLASH_HMCFGUSB_OBJS) $(FLASH_HMMODUART_OBJS) $(FLASH_OTA_OBJS)
 
 all: hmland hmsniff flash-hmcfgusb flash-hmmoduart flash-ota
 
-DEPEND=$(OBJS:.o=.d)
+DEPEND:=$(OBJS:.o=.d)
 -include $(DEPEND)
 
 hmland: $(HMLAN_OBJS)
