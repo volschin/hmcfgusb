@@ -116,12 +116,18 @@ static void write_log(const char *buf, int len, const char *fmt, ...)
 	if (fmt) {
 		if (logfile) {
 			va_start(ap, fmt);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 			vfprintf(logfile, fmt, ap);
+#pragma GCC diagnostic pop
 			va_end(ap);
 		}
 		if (verbose) {
 			va_start(ap, fmt);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 			vprintf(fmt, ap);
+#pragma GCC diagnostic pop
 			va_end(ap);
 		}
 	}
