@@ -654,7 +654,7 @@ static int socket_server(char *iface, int port, int flags)
 						exit(EXIT_FAILURE);
 					}
 
-					if (fscanf(pidfile, "%u", &old_pid) != 1) {
+					if (fscanf(pidfile, "%d", &old_pid) != 1) {
 						fclose(pidfile);
 						fprintf(stderr, "Can't read old PID from " PID_FILE ", already running?\n");
 						exit(EXIT_FAILURE);
