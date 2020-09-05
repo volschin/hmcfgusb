@@ -1,26 +1,10 @@
 ifeq ($(OPENWRT_BUILD),)
 
 #Normal system
-CFLAGS=-Wall -Wextra -Wno-unused-parameter -pedantic
-CFLAGS+= -Wno-unknown-warning-option
-CFLAGS+= -Wformat=2
-CFLAGS+= -Wformat-truncation=2
-CFLAGS+= -Wwrite-strings
-CFLAGS+= -Wnull-dereference
-CFLAGS+= -Wuninitialized
-CFLAGS+= -Wstrict-overflow
-CFLAGS+= -Wdate-time
-CFLAGS+= -Wundef
-CFLAGS+= -Wpacked
-CFLAGS+= -Wduplicated-branches
-CFLAGS+= -Wduplicated-cond
-CFLAGS+= -Wstrict-prototypes
-CFLAGS+= -Wbad-function-cast
-CFLAGS+= -Wold-style-definition
-CFLAGS+= -MMD -O2 -I/opt/local/include -g
+CFLAGS=-MMD -O2 -Wall -I/opt/local/include -g
 
-LDFLAGS:=-L/opt/local/lib
-LDLIBS:=-lusb-1.0 -lrt
+LDFLAGS=-L/opt/local/lib
+LDLIBS=-lusb-1.0 -lrt
 
 ifeq ($(firstword $(origin CC)),default)
 CC:=gcc
