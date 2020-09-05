@@ -113,6 +113,8 @@ static const char* usb_str_transfer_status(int e)
 		case LIBUSB_TRANSFER_CANCELLED:
 			return "Transfer cancelled";
 		case LIBUSB_TRANSFER_STALL:
+			return "For bulk/interrupt endpoints: endpoint stalled. For control endpoints: control request not supported.";
+		case LIBUSB_TRANSFER_NO_DEVICE:
 			return "No device";
 		case LIBUSB_TRANSFER_OVERFLOW:
 			return "Transfer overflow";
