@@ -437,7 +437,7 @@ static int hmlan_parse_one(uint8_t *cmd, int last, void *data)
 			parse_part_in(&inpos, (last-(inpos-cmd)), &outpos, (sizeof(out)-(outpos-out)), 0);
 			parse_part_in(&inpos, (last-(inpos-cmd)), &outpos, (sizeof(out)-(outpos-out)), 0);
 			parse_part_in(&inpos, (last-(inpos-cmd)), &outpos, (sizeof(out)-(outpos-out)), FLAG_LENGTH_BYTE);
-			break;
+			// Fallthrough to default expected, no break here
 		default:
 			parse_part_in(&inpos, (last-(inpos-cmd)), &outpos, (sizeof(out)-(outpos-out)), FLAG_IGNORE_COMMAS);
 			break;
