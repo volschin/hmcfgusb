@@ -1,6 +1,6 @@
 /* flasher for HM-CFG-USB
  *
- * Copyright (c) 2013-16 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2013-20 Michael Gernoth <michael@gernoth.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	fw = firmware_read_firmware(filename, debug);
+	fw = firmware_read_firmware(filename, ATMEGA_UNKNOWN, debug);
 	if (!fw)
 		exit(EXIT_FAILURE);
 

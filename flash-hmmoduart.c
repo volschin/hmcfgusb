@@ -1,6 +1,6 @@
 /* flasher for HM-MOD-UART
  *
- * Copyright (c) 2016-17 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2016-20 Michael Gernoth <michael@gernoth.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	fw = firmware_read_firmware(filename, debug);
+	fw = firmware_read_firmware(filename, ATMEGA_UNKNOWN, debug);
 	if (!fw)
 		exit(EXIT_FAILURE);
 

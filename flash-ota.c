@@ -1,6 +1,6 @@
 /* flasher for HomeMatic-devices supporting OTA updates
  *
- * Copyright (c) 2014-17 Michael Gernoth <michael@gernoth.net>
+ * Copyright (c) 2014-20 Michael Gernoth <michael@gernoth.net>
  * Copyright (c) 2017 noansi (TSCULFW-support)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -618,7 +618,8 @@ void flash_ota_syntax(char *prog)
 {
 	fprintf(stderr, "Syntax: %s parameters options\n\n", prog);
 	fprintf(stderr, "Mandatory parameters:\n");
-	fprintf(stderr, "\t-f firmware.eq3\tfirmware file to flash\n");
+	fprintf(stderr, "\t-f firmware.eq3\teq3 firmware file to flash\n");
+	fprintf(stderr, "or\t-f firmware.hex\thex firmware file to flash (AsksinPP), needs -3 or -6\n");
 	fprintf(stderr, "\t-s SERIAL\tserial of device to flash (optional when using -D)\n");
 	fprintf(stderr, "\nOptional parameters:\n");
 	fprintf(stderr, "\t-c device\tenable CUL-mode with CUL at path \"device\"\n");
@@ -626,6 +627,8 @@ void flash_ota_syntax(char *prog)
 	fprintf(stderr, "\t-l\t\tlower payloadlen (required for devices with little RAM, e.g. CUL v2 and CUL v4)\n");
 	fprintf(stderr, "\t-S serial\tuse HM-CFG-USB with given serial\n");
 	fprintf(stderr, "\t-U device\tuse HM-MOD-UART on given device\n");
+	fprintf(stderr, "\t-3\t\tuse Atmega328P configuration when directly flashing AsksinPP hex\n");
+	fprintf(stderr, "\t-6\t\tuse Atmega644P configuration when directly flashing AsksinPP hex\n");
 	fprintf(stderr, "\t-h\t\tthis help\n");
 	fprintf(stderr, "\nOptional parameters for automatically sending device to bootloader\n");
 	fprintf(stderr, "\t-C\t\tHMID of central (3 hex-bytes, no prefix, e.g. ABCDEF)\n");
@@ -651,6 +654,7 @@ int main(int argc, char **argv)
 	struct firmware *fw;
 	char *hmcfgusb_serial = NULL;
 	char *uart = NULL;
+	int atmega = ATMEGA_UNKNOWN;
 	int block;
 	int pfd;
 	int debug = 0;
@@ -662,7 +666,7 @@ int main(int argc, char **argv)
 
 	printf("HomeMatic OTA flasher version " VERSION "\n\n");
 
-	while((opt = getopt(argc, argv, "b:c:f:hls:C:D:K:S:U:")) != -1) {
+	while((opt = getopt(argc, argv, "b:c:f:hls:C:D:K:S:U:36")) != -1) {
 		switch (opt) {
 			case 'b':
 				bps = atoi(optarg);
@@ -722,6 +726,12 @@ int main(int argc, char **argv)
 			case 'U':
 				uart = optarg;
 				break;
+			case '3':
+				atmega = ATMEGA_328P;
+				break;
+			case '6':
+				atmega = ATMEGA_644P;
+				break;
 			case 'h':
 			case ':':
 			case '?':
@@ -738,7 +748,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	fw = firmware_read_firmware(fw_file, debug);
+	fw = firmware_read_firmware(fw_file, atmega, debug);
 	if (!fw)
 		exit(EXIT_FAILURE);
 
