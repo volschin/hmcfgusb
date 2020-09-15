@@ -47,7 +47,7 @@
 #define HEX_BLOCK_LENGTH_644P	256
 #define HEX_IMAGE_SIZE_328P	0x7000
 #define HEX_IMAGE_SIZE_644P	0xF000
-#define HEX_IMAGE_SIZE_MAX	0xFFFF
+#define HEX_IMAGE_SIZE_MAX	0x10000
 
 static uint16_t crc16(uint8_t* buf, int length, uint16_t crc)
 {
