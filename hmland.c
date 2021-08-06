@@ -53,6 +53,7 @@
 /* Don't allow remote clients to consume all of our memory */
 #define LAN_MAX_LINE_LENGTH	4096
 #define LAN_MAX_BUF_LENGTH	1048576
+#define LU "%"PRIu64
 
 extern char *optarg;
 
