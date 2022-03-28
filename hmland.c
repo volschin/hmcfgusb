@@ -98,7 +98,7 @@ static void print_timestamp(FILE *f)
 	tmp = localtime(&tv.tv_sec);
 	memset(ts, 0, sizeof(ts));
 	strftime(ts, sizeof(ts)-1, "%Y-%m-%d %H:%M:%S", tmp);
-	fprintf(f, "%s.%06ld: ", ts, tv.tv_usec);
+	fprintf(f, "%s.%06lld: ", ts, tv.tv_usec);
 }
 
 static void write_log(const char *buf, int len, const char *fmt, ...)
