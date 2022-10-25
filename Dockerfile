@@ -1,6 +1,6 @@
 # HMCFGUSB
 # http://git.zerfleddert.de/cgi-bin/gitweb.cgi/hmcfgusb
-FROM alpine:3
+FROM alpine:20220715
 
 # Package version
 ARG HMCFGUSB_VER=0.103
