@@ -616,7 +616,7 @@ static int comm(int fd_in, int fd_out, int master_socket, int flags)
 
 		if (reboot_seconds && ((dev->opened_at + reboot_seconds) <= time(NULL))) {
 			if (verbose) {
-				printf("HM-CFG-USB running since %lu seconds, rebooting now...\n",
+				printf("HM-CFG-USB running since %lld seconds, rebooting now...\n",
 					time(NULL) - dev->opened_at);
 			}
 			hmcfgusb_enter_bootloader(dev);
