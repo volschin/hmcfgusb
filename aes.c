@@ -21,6 +21,7 @@
 #include "aes.h"
 
 #include <stdio.h>
+#include <stddef.h>
 
 /****************************** MACROS ******************************/
 // The least significant byte of the word is rotated to the end.
