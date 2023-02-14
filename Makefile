@@ -1,7 +1,8 @@
 ifeq ($(OPENWRT_BUILD),)
 
 #Normal system
-CFLAGS=-MMD -O2 -Wall -Wconversion -I/opt/local/include -g
+#CFLAGS=-MMD -O2 -Wall -Wconversion -I/opt/local/include -g
+CFLAGS=-MMD -O2 -Wall -Wextra -I/opt/local/include -g
 
 LDFLAGS=-L/opt/local/lib
 LDLIBS=-lusb-1.0 -lrt
