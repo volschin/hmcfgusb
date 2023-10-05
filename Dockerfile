@@ -13,7 +13,7 @@ RUN apk add --no-cache --virtual=build-dependencies \
             build-base \
             libusb-dev \
 # Install runtime packages
- && apk add --no-cache --updates \
+ && apk add --no-cache --update \
             libusb \
             ca-certificates \
 # Install app
