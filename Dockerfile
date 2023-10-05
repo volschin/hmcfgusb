@@ -13,8 +13,9 @@ RUN apk add --no-cache --virtual=build-dependencies \
             build-base \
             libusb-dev \
 # Install runtime packages
- && apk add --no-cache \
+ && apk add --no-cache --updates \
             libusb \
+            ca-certificates \
 # Install app
  && cd /app/hmcfgusb \
  && make \
