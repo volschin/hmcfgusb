@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - clang
     tags:
       - '*'
   schedule:
@@ -33,6 +34,10 @@ jobs:
       - if: github.ref == 'refs/heads/main'
         name: Conditional(Set tag as `latest`)
         run: echo "tag=volschin/hmcfgusb:latest" >> $GITHUB_ENV
+
+      - if: github.ref == 'refs/heads/clang'
+        name: Conditional(Set tag as `latest`)
+        run: echo "tag=volschin/hmcfgusb:clang" >> $GITHUB_ENV
 
       - if: startsWith(github.ref, 'refs/tags/')
         name: Conditional(Set tag as `{version}`)
