@@ -3,15 +3,15 @@
 FROM alpine:3.18
 
 # Package version
-ARG HMCFGUSB_VER=0.103
+ARG HMCFGUSB_VER=0.104
 
 COPY * /app/hmcfgusb
 WORKDIR /app/hmcfgusb
 
 # Install build packages
 RUN apk add --no-cache --virtual=build-dependencies \
-#            build-base \
-            clang make ccache \
+            build-base \
+            clang ccache \
             libusb-dev \
 # Install runtime packages
  && apk add --no-cache --update \
