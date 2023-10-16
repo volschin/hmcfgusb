@@ -10,7 +10,7 @@ WORKDIR /app/hmcfgusb
 
 # Install build packages
 RUN apk add --no-cache --virtual=build-dependencies \
-            build-base \
+#            build-base \
             clang cmake ccache \
             libusb-dev \
 # Install runtime packages
