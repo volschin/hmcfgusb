@@ -8,7 +8,7 @@ LDFLAGS=-L/opt/local/lib
 LDLIBS=-lusb-1.0 -lrt
 
 ifeq ($(firstword $(origin CC)),default)
-CC:=gcc
+CC:=clang
 endif
 
 HMLAN_OBJS:=hmcfgusb.o hmland.o util.o
