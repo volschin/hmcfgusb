@@ -19,7 +19,7 @@ RUN apk add --no-cache --virtual=build-dependencies \
             ca-certificates \
 # Install app
  && cd /app/hmcfgusb \
- && make \
+ && cmake \
 # Cleanup
  && apk del --purge build-dependencies \
  && rm *.h *.o *.c *.d
