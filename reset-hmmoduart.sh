@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "`id -u`" != "0" ]; then
+if [ "$(id -u)" != "0" ]; then
 	exec sudo "${0}"
 fi
 
