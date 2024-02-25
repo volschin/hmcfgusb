@@ -1,7 +1,7 @@
 ifeq ($(OPENWRT_BUILD),)
 UNAME_P := $(shell uname -p)
 ifeq ($(UNAME_P),x86_64)
-  ARCH := -march=x86_64-v3
+  ARCH := -march=x86-64-v3 -mtune=skylake
 endif
 
 #Normal system
