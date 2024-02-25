@@ -5,7 +5,7 @@ UNAME_P := $(shell uname -p)
   CFLAGS=-MMD -O2 -march=x86-64-v3 -mtune=cannonlake -Wall -Wextra -I/opt/local/include -g
 #else
 #  CFLAGS=-MMD -O2 -Wall -Wextra -I/opt/local/include -g
-endif
+#endif
 
 LDFLAGS=-L/opt/local/lib
 LDLIBS=-lusb-1.0 -lrt
