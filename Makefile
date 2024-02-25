@@ -1,8 +1,12 @@
 ifeq ($(OPENWRT_BUILD),)
+UNAME_P := $(shell uname -p)
+ifeq ($(UNAME_P),x86_64)
+  ARCH := -march=x86_64-v3
+endif
 
 #Normal system
 #CFLAGS=-MMD -O2 -Wall -Wconversion -I/opt/local/include -g
-CFLAGS=-MMD -O2 -march=native -Wall -Wextra -I/opt/local/include -g
+CFLAGS=-MMD -O2 $(ARCH) -Wall -Wextra -I/opt/local/include -g
 
 LDFLAGS=-L/opt/local/lib
 LDLIBS=-lusb-1.0 -lrt
