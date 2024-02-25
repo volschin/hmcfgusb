@@ -1,12 +1,11 @@
 ifeq ($(OPENWRT_BUILD),)
 UNAME_P := $(shell uname -p)
-ifeq ($(UNAME_P),x86_64)
-  ARCH := -march=x86-64-v3 -mtune=skylake
-endif
 
-#Normal system
-#CFLAGS=-MMD -O2 -Wall -Wconversion -I/opt/local/include -g
-CFLAGS=-MMD -O2 $(ARCH) -Wall -Wextra -I/opt/local/include -g
+ifeq ($(UNAME_P),x86_64)
+  CFLAGS=-MMD -O2 $(ARCH) -march=x86-64-v3 -mtune=cannonlake -Wall -Wextra -I/opt/local/include -g
+else
+  CFLAGS=-MMD -O2 $(ARCH) -Wall -Wextra -I/opt/local/include -g
+endif
 
 LDFLAGS=-L/opt/local/lib
 LDLIBS=-lusb-1.0 -lrt
